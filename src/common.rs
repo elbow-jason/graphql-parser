@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt};
+use std::collections::BTreeMap;
 
 use combine::combinator::{choice, many, many1, optional, position};
 use combine::easy::Error;
