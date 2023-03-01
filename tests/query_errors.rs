@@ -1,8 +1,10 @@
 extern crate graphql_parser;
-#[cfg(test)] #[macro_use] extern crate pretty_assertions;
+#[cfg(test)]
+#[macro_use]
+extern crate pretty_assertions;
 
-use std::io::Read;
 use std::fs::File;
+use std::io::Read;
 
 use graphql_parser::parse_query;
 
@@ -14,9 +16,15 @@ fn test_error(filename: &str) {
     let mut iter = buf.splitn(2, "\n---\n");
     let graphql = iter.next().unwrap();
     let expected = iter.next().expect("file should contain error message");
-    let err = parse_query::<String>(graphql).unwrap_err();
+    let err = parse_query(graphql).unwrap_err();
     assert_eq!(err.to_string(), expected);
 }
 
-#[test] fn invalid_curly_brace() { test_error("invalid_curly_brace"); }
-#[test] fn bad_args() { test_error("bad_args"); }
+#[test]
+fn invalid_curly_brace() {
+    test_error("invalid_curly_brace");
+}
+#[test]
+fn bad_args() {
+    test_error("bad_args");
+}

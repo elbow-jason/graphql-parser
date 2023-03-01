@@ -5,131 +5,131 @@
 //!
 //! [graphql grammar]: http://facebook.github.io/graphql/October2016/#sec-Appendix-Grammar-Summary
 //!
+pub use crate::common::{Directive, Number, Type, Value};
 use crate::position::Pos;
-pub use crate::common::{Directive, Number, Value, Text, Type};
 
 /// Root of query data
 #[derive(Debug, Clone, PartialEq)]
-pub struct Document<'a, T: Text<'a>> {
-    pub definitions: Vec<Definition<'a, T>>,
+pub struct Document<'a> {
+    pub definitions: Vec<Definition<'a>>,
 }
 
-impl<'a> Document<'a, String> {
-    pub fn into_static(self) -> Document<'static, String> {
-        // To support both reference and owned values in the AST,
-        // all string data is represented with the ::common::Str<'a, T: Text<'a>> 
-        // wrapper type.
-        // This type must carry the lifetime of the query string,
-        // and is stored in a PhantomData value on the Str type.
-        // When using owned String types, the actual lifetime of
-        // the Ast nodes is 'static, since no references are kept,
-        // but the nodes will still carry the input lifetime.
-        // To continue working with Document<String> in a owned fasion
-        // the lifetime needs to be transmuted to 'static.
-        //
-        // This is safe because no references are present.
-        // Just the PhantomData lifetime reference is transmuted away.
-        unsafe { std::mem::transmute::<_, Document<'static, String>>(self) }
-    }
+// impl<'a> Document<'a> {
+//     pub fn into_static(self) -> Document<'static, String> {
+//         // To support both reference and owned values in the AST,
+//         // all string data is represented with the ::common::Str<'a>
+//         // wrapper type.
+//         // This type must carry the lifetime of the query string,
+//         // and is stored in a PhantomData value on the Str type.
+//         // When using owned String types, the actual lifetime of
+//         // the Ast nodes is 'static, since no references are kept,
+//         // but the nodes will still carry the input lifetime.
+//         // To continue working with Document<String> in a owned fasion
+//         // the lifetime needs to be transmuted to 'static.
+//         //
+//         // This is safe because no references are present.
+//         // Just the PhantomData lifetime reference is transmuted away.
+//         unsafe { std::mem::transmute::<_, Document<'static, String>>(self) }
+//     }
+// }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Definition<'a> {
+    Operation(OperationDefinition<'a>),
+    Fragment(FragmentDefinition<'a>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Definition<'a, T: Text<'a>> {
-    Operation(OperationDefinition<'a, T>),
-    Fragment(FragmentDefinition<'a, T>),
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct FragmentDefinition<'a, T: Text<'a>> {
+pub struct FragmentDefinition<'a> {
     pub position: Pos,
-    pub name: T::Value,
-    pub type_condition: TypeCondition<'a, T>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub name: &'a str,
+    pub type_condition: TypeCondition<'a>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum OperationDefinition<'a, T: Text<'a>> {
-    SelectionSet(SelectionSet<'a, T>),
-    Query(Query<'a, T>),
-    Mutation(Mutation<'a, T>),
-    Subscription(Subscription<'a, T>),
+pub enum OperationDefinition<'a> {
+    SelectionSet(SelectionSet<'a>),
+    Query(Query<'a>),
+    Mutation(Mutation<'a>),
+    Subscription(Subscription<'a>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Query<'a, T: Text<'a>> {
+pub struct Query<'a> {
     pub position: Pos,
-    pub name: Option<T::Value>,
-    pub variable_definitions: Vec<VariableDefinition<'a, T>>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub name: Option<&'a str>,
+    pub variable_definitions: Vec<VariableDefinition<'a>>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Mutation<'a, T: Text<'a>> {
+pub struct Mutation<'a> {
     pub position: Pos,
-    pub name: Option<T::Value>,
-    pub variable_definitions: Vec<VariableDefinition<'a, T>>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub name: Option<&'a str>,
+    pub variable_definitions: Vec<VariableDefinition<'a>>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Subscription<'a, T: Text<'a>> {
+pub struct Subscription<'a> {
     pub position: Pos,
-    pub name: Option<T::Value>,
-    pub variable_definitions: Vec<VariableDefinition<'a, T>>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub name: Option<&'a str>,
+    pub variable_definitions: Vec<VariableDefinition<'a>>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct SelectionSet<'a, T: Text<'a>> {
+pub struct SelectionSet<'a> {
     pub span: (Pos, Pos),
-    pub items: Vec<Selection<'a, T>>,
+    pub items: Vec<Selection<'a>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct VariableDefinition<'a, T: Text<'a>> {
+pub struct VariableDefinition<'a> {
     pub position: Pos,
-    pub name: T::Value,
-    pub var_type: Type<'a, T>,
-    pub default_value: Option<Value<'a, T>>,
+    pub name: &'a str,
+    pub var_type: Type<'a>,
+    pub default_value: Option<Value<'a>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Selection<'a, T: Text<'a>> {
-    Field(Field<'a, T>),
-    FragmentSpread(FragmentSpread<'a, T>),
-    InlineFragment(InlineFragment<'a, T>),
+pub enum Selection<'a> {
+    Field(Field<'a>),
+    FragmentSpread(FragmentSpread<'a>),
+    InlineFragment(InlineFragment<'a>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Field<'a, T: Text<'a>> {
+pub struct Field<'a> {
     pub position: Pos,
-    pub alias: Option<T::Value>,
-    pub name: T::Value,
-    pub arguments: Vec<(T::Value, Value<'a, T>)>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub alias: Option<&'a str>,
+    pub name: &'a str,
+    pub arguments: Vec<(&'a str, Value<'a>)>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FragmentSpread<'a, T: Text<'a>> {
+pub struct FragmentSpread<'a> {
     pub position: Pos,
-    pub fragment_name: T::Value,
-    pub directives: Vec<Directive<'a, T>>,
+    pub fragment_name: &'a str,
+    pub directives: Vec<Directive<'a>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum TypeCondition<'a, T: Text<'a>> {
-    On(T::Value),
+pub enum TypeCondition<'a> {
+    On(&'a str),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct InlineFragment<'a, T: Text<'a>> {
+pub struct InlineFragment<'a> {
     pub position: Pos,
-    pub type_condition: Option<TypeCondition<'a, T>>,
-    pub directives: Vec<Directive<'a, T>>,
-    pub selection_set: SelectionSet<'a, T>,
+    pub type_condition: Option<TypeCondition<'a>>,
+    pub directives: Vec<Directive<'a>>,
+    pub selection_set: SelectionSet<'a>,
 }
