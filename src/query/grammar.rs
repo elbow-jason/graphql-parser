@@ -280,7 +280,7 @@ mod test {
     use crate::query::grammar::*;
 
     fn ast<'a>(s: &'a str) -> Document<'a> {
-        parse_query(&s).unwrap().to_owned()
+        parse_query(&s).unwrap()
     }
 
     #[test]
@@ -349,7 +349,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "number too large")]
+    #[should_panic(expected = "ParseIntError { kind: PosOverflow }")]
     fn large_integer() {
         ast("{ a(x: 10000000000000000000000000000 }");
     }
